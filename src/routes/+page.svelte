@@ -1,59 +1,79 @@
-<script>
-	import Counter from './Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcome_fallback from '$lib/images/svelte-welcome.png';
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import mapboxgl from 'mapbox-gl';
+	import 'mapbox-gl/dist/mapbox-gl.css';
+
+	let map: mapboxgl.Map;
+	let mapRef: HTMLDivElement;
+	let lat = -74.5;
+	let lng = 40;
+	let zoom = 9;
+
+	onMount(() => {
+		if (!mapRef) return;
+
+		mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
+		map = new mapboxgl.Map({
+			container: mapRef,
+			style: 'mapbox://styles/mapbox/streets-v12',
+			center: [lat, lng],
+			zoom
+		});
+
+		map.on('move', () => {
+		  const center = map.getCenter();
+
+			lat = center.lat;
+			lng = center.lng;
+			zoom = map.getZoom();
+		});
+	});
 </script>
 
 <svelte:head>
 	<title>Home</title>
 	<meta name="description" content="Svelte demo app" />
+	<link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet" />
 </svelte:head>
 
-<section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcome_fallback} alt="Welcome" />
-			</picture>
-		</span>
+<div class="container">
+	<div class="map-wrapper">
+		<div class="sidebar">
+			Longitude: {lng.toFixed(4)} | Latitude: {lat.toFixed(4)} | Zoom:
+			{zoom.toFixed(2)}
+		</div>
+		<div bind:this={mapRef} class="map"></div>
+	</div>
+</div>
 
-		to your new<br />SvelteKit app
-	</h1>
-
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<Counter />
-</section>
-
-<style>
-	section {
+<style lang="scss">
+	.container {
 		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
+		flex: 1;
+		border: 1px solid red;
 	}
 
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
+	.map-wrapper {
 		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
+		flex: 1;
 	}
 
-	.welcome img {
+	.map {
+	  width: 100%;
+    height: 100%
+	}
+
+	.sidebar {
+		background-color: rgb(35 55 75 / 90%);
+		color: #fff;
+		padding: 6px 12px;
+		font-family: monospace;
+		z-index: 1;
 		position: absolute;
-		width: 100%;
-		height: 100%;
 		top: 0;
-		display: block;
+		left: 0;
+		margin: 12px;
+		border-radius: 4px;
 	}
 </style>
